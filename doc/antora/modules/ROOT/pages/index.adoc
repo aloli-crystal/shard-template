@@ -1,0 +1,22 @@
+= __TITLE__
+:description: __DESCRIPTION_FR__
+
+__DESCRIPTION_FR__
+
+== Statut
+
+* *Version* : {page-component-display-version}
+* *Repo* : https://github.com/aloli-crystal/__SHARD__[aloli-crystal/__SHARD__]
+* *Licence* : MIT
+
+== Quickstart
+
+[source,crystal]
+----
+require "__SHARD__"
+
+# … exemple d'utilisation …
+----
+
+Pour les détails, voir xref:usage.adoc[Utilisation] ou
+xref:api.adoc[API].

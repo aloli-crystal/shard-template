@@ -1,0 +1,23 @@
+= Utilisation
+
+== Cas d'usage principaux
+
+[source,crystal]
+----
+require "__SHARD__"
+
+# Exemple : à remplir lors de l'écriture du shard.
+----
+
+== En CLI (si applicable)
+
+[source,shell]
+----
+__SHARD__ --help
+__SHARD__ help
+__SHARD__ help <sous-commande>
+----
+
+Convention UX ALOLI : tout CLI accepte `<cmd> help [<sub>]` en
+positionnel (équivalent à `--help`/`-h`, focus sur une
+sous-commande quand un argument est fourni).

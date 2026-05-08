@@ -1,0 +1,25 @@
+name: __SHARD__
+version: 0.1.0
+
+description: |
+  __DESCRIPTION_EN__
+
+authors:
+  - __AUTHOR__ <__AUTHOR_EMAIL__>
+
+crystal: ">= 1.10.0"
+
+license: MIT
+
+dependencies:
+  # ajouter ici (cf. README pour les dépendances aloli-crystal/* courantes)
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+    version: "~> 1.6"
+
+# Décommenter pour exposer un binaire CLI :
+# targets:
+#   __SHARD__:
+#     main: src/cli.cr

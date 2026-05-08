@@ -1,0 +1,56 @@
+= aloli-crystal/__SHARD__
+:toc: left
+:toc-title: Sommaire
+
+__DESCRIPTION_FR__
+
+== Installation
+
+[source,yaml]
+----
+dependencies:
+  __SHARD__:
+    github: aloli-crystal/__SHARD__
+    version: "~> 0.1"
+----
+
+== Démarrage rapide
+
+[source,crystal]
+----
+require "__SHARD__"
+
+# … exemple à compléter …
+----
+
+== Statut
+
+* *Version* : voir https://github.com/aloli-crystal/__SHARD__/releases[releases GitHub]
+* *Branche par défaut* : `production`
+* *Licence* : MIT (voir `LICENSE`)
+
+== Documentation
+
+* https://aloli-crystal.github.io/__SHARD__/[Site documentaire Antora] (à venir)
+* `CHANGELOG.fr.adoc` — historique des versions
+* `CHANGELOG.adoc` — version anglaise
+
+== Conventions ALOLI
+
+Ce shard suit les conventions de l'écosystème
+https://github.com/aloli-crystal[aloli-crystal/*] :
+
+* Constante `VERSION` lue au compile-time depuis `shard.yml` —
+  pas de désynchro possible.
+* CLI : `__SHARD__ help [<sub>]` (équivalent UX standard de
+  `--help` + focus par sous-commande).
+* Branche par défaut `production` (pas `main`).
+* Versioning SemVer 3-chiffres pour création, 4-chiffres pour
+  portage de gem Ruby.
+
+Pour démarrer un nouveau shard avec ces conventions :
+https://github.com/aloli-crystal/shard-template[aloli-crystal/shard-template].
+
+== Licence
+
+MIT — voir `LICENSE`.

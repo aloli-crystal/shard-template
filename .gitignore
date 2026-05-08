@@ -1,0 +1,24 @@
+# Crystal
+/docs/        # output de `crystal docs` — on commit `doc/` (singulier) à la place
+/lib/
+/.shards/
+*.dwarf
+
+# Binaires compilés (jamais commités, cf. memory feedback_binaries_no_push)
+/bin/
+!/bin/init    # SAUF le script de bootstrap fourni par le template
+
+# Editor / OS
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Couverture / profilage
+/coverage/
+
+# Fixtures temporaires
+*.tmp
+/tmp/
+/spec/tmp/

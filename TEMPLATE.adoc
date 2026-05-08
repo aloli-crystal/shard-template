@@ -1,0 +1,144 @@
+= aloli-crystal/shard-template
+:toc: left
+
+Template officiel ALOLI pour démarrer un nouveau shard Crystal.
+Agrège **toutes les conventions** de l'écosystème
+https://github.com/aloli-crystal[aloli-crystal/*] dans une
+structure prête à cloner.
+
+NOTE: Ce repo est un *template*. Il n'est pas destiné à être
+cloné directement comme dépendance. Utilisez-le comme point de
+départ pour créer un nouveau shard, soit via le bouton
+**Use this template** sur GitHub, soit en clonant + lançant
+`./bin/init`.
+
+== Conventions inclues
+
+[cols="1,3"]
+|===
+| Convention | Implémentation dans le template
+
+| Macro `VERSION` au compile-time
+| `src/<shard>/version.cr` lit `shard.yml` via `read_file`. Spec
+  garde-fou dans `spec/version_spec.cr`.
+
+| CLI `<cli> help [<sub>]`
+| `src/cli.cr` avec OptionParser + dispatch positionnel `help` +
+  alias `-h` / `--help`. Spec d'intégration dans
+  `spec/help_subcommand_spec.cr`.
+
+| Short pour chaque flag long
+| Convention rappelée dans la note `feedback_cli_short_flags.md`.
+  Le CLI template impose `-h`/`-v` ; à appliquer aux flags
+  spécifiques de votre shard.
+
+| Versioning 3 ou 4 chiffres
+| Démarre à `0.1.0` (création). Pour un portage, ajouter le 4e
+  chiffre manuellement (ex. `1.2.3.0` pour la première version
+  ALOLI d'une gem upstream `1.2.3`). Cf. `feedback_versioning_shards.md`.
+
+| Branche par défaut `production`
+| `bin/init` initialise `git` directement sur `production` et
+  configure GitHub avec `default_branch=production` via `gh api`.
+
+| Messages de commit en français
+| Le commit initial bootstrappé par `bin/init` est en français,
+  format `Version X.Y.Z : <résumé>`. Cf.
+  `feedback_commit_messages_french.md`.
+
+| README + CHANGELOG bilingues
+| `README.adoc` (EN) + `README.fr.adoc` (FR), idem pour CHANGELOG.
+
+| Doc Antora
+| Composant Antora fonctionnel sous `doc/antora/` — agrège
+  automatiquement dans le site `aloli-crystal/docs` quand le repo
+  y est référencé.
+
+| Ameba dans dev-deps + CI
+| `shard.yml` déclare ameba en dev_dependencies. CI GitHub Actions
+  inclut `crystal spec`, `crystal tool format --check`, `bin/ameba`.
+
+| Pas de binaires commités
+| `.gitignore` ignore `/bin/` SAUF `bin/init` (script bootstrap).
+|===
+
+== Comment l'utiliser
+
+=== Option A : « Use this template » (GitHub UI)
+
+. Cliquez sur **Use this template** → **Create a new repository**
+  sur https://github.com/aloli-crystal/shard-template.
+. Donnez un nom au repo (`aloli-crystal/<votre-shard>`).
+. Clonez localement, puis exécutez :
++
+[source,shell]
+----
+cd <votre-shard>
+./bin/init
+----
++
+Le script demande nom de shard, module Crystal, descriptions,
+auteur. Il remplace les placeholders, fait `git commit` initial,
+crée le tag `v0.1.0`, pousse.
+
+=== Option B : clone direct
+
+[source,shell]
+----
+git clone https://github.com/aloli-crystal/shard-template <votre-shard>
+cd <votre-shard>
+rm -rf .git
+./bin/init
+----
+
+=== Mode non-interactif (CI / automatisation)
+
+[source,shell]
+----
+./bin/init my-new-shard MyNewShard "Crystal shard for my use case"
+# Demande quand même la description FR, l'auteur et la confirmation
+# git/GitHub. Pour scripter complètement, utiliser un `here-doc`
+# avec les réponses pré-remplies, ou patcher bin/init pour ajouter
+# d'autres args.
+----
+
+== Placeholders gérés
+
+`bin/init` substitue les tokens suivants dans tous les fichiers :
+
+[cols="1,1,3",options="header"]
+|===
+| Token | Exemple | Source
+
+| `__SHARD__`           | `my-shard`               | nom kebab-case
+| `__MODULE__`          | `MyShard`                | module Crystal CamelCase
+| `__DESCRIPTION_EN__`  | "Crystal shard for X"    | description anglaise
+| `__DESCRIPTION_FR__`  | "Shard Crystal pour X"   | description française
+| `__TITLE__`           | "MyShard"                | titre humain (Antora)
+| `__AUTHOR__`          | "Philippe Nénert"        | `git config user.name`
+| `__AUTHOR_EMAIL__`    | "philippe@aloli.fr"      | `git config user.email`
+| `__YEAR__`            | "2026"                   | année courante (pour LICENSE)
+| `__DATE__`            | "2026-05-08"             | date courante (pour CHANGELOG)
+| `__SHARD_VERSION__`   | "0.1.0"                  | version initiale
+|===
+
+== Si vous n'avez pas besoin de CLI
+
+Le template inclut un CLI complet (`src/cli.cr` + spec
+d'intégration) parce que c'est le cas le plus courant. Pour un
+shard purement bibliothèque :
+
+. Supprimez `src/cli.cr`.
+. Supprimez `spec/help_subcommand_spec.cr`.
+. Laissez le bloc `targets:` *commenté* dans `shard.yml`.
+
+== Mise à jour du template lui-même
+
+Si vous trouvez une convention manquante ou un fix à apporter au
+template, faites une PR ici. Idéalement, accompagnez-la d'une
+mise à jour de la note mémoire ALOLI correspondante (les
+`feedback_*.md` dans `~/.claude/...`).
+
+== Licence
+
+MIT — voir `LICENSE`.
