@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+#
+# bin/init — bootstrap d'un nouveau shard à partir du template ALOLI.
+#
+# Usage : ./bin/init [SHARD_NAME] [MODULE_NAME] [DESCRIPTION_EN]
+#
+# Sans arguments, le script demande interactivement chaque valeur.
+# Avec arguments, il les utilise tels quels (utile pour CI / scripts).
+#
+# Le script :
+#   1. Demande / valide le nom du shard, le module Crystal, les
+#      descriptions, l'auteur.
+#   2. Renomme `src/__SHARD__/` et `src/__SHARD__.cr` avec le vrai nom.
+#   3. Remplace tous les placeholders `__SHARD__`, `__MODULE__`,
+#      `__DESCRIPTION_EN__`, `__DESCRIPTION_FR__`, `__AUTHOR__`,
+#      `__AUTHOR_EMAIL__`, `__YEAR__`, `__DATE__`, `__TITLE__`.
+#   4. (Optionnel) Initialise un dépôt git sur la branche `production`,
+#      crée le repo GitHub `aloli-crystal/<shard>` (via `gh`) et
+#      pousse le commit initial.
+#
+# Le script s'exécute UNE FOIS ; après, il se supprime lui-même
+# pour ne pas laisser de garbage.
+
+set -e
+
+err() { printf "\033[31m✗\033[0m %s\n" "$*" >&2; exit 1; }
+ok()  { printf "\033[32m✓\033[0m %s\n" "$*"; }
+ask() {
+  local prompt="$1" default="$2" var
+  if [ -n "$default" ]; then
+    read -r -p "  $prompt [$default] : " var
+    echo "${var:-$default}"
+  else
+    read -r -p "  $prompt : " var
+    echo "$var"
+  fi
+}
+
+# ─── Pré-checks ────────────────────────────────────────────────────
+[ -d "src/__SHARD__" ] || err "Ce script doit être lancé depuis la racine du shard-template (ou un clone fraîchement bootstrappé)."
+
+# ─── Args ou prompt interactif ─────────────────────────────────────
+SHARD_NAME="${1:-}"
+MODULE_NAME="${2:-}"
+DESC_EN="${3:-}"
+
+if [ -z "$SHARD_NAME" ]; then
+  echo "Bootstrap d'un nouveau shard ALOLI"
+  echo ""
+  SHARD_NAME=$(ask "Nom du shard (kebab-case, ex. my-shard)" "")
+fi
+[ -z "$SHARD_NAME" ] && err "Nom du shard requis."
+
+# Convention : créations sans préfixe `crystal-`, portages avec.
+# Cf. memory feedback_shard_naming.md.
+case "$SHARD_NAME" in
+  crystal-*) ok "Détecté comme portage de gem Ruby (préfixe crystal-)." ;;
+  *)         ok "Détecté comme création originale (pas de préfixe)." ;;
+esac
+
+# Module Crystal CamelCase suggéré depuis le nom kebab-case.
+suggest_module() {
+  echo "$1" | awk -F- '{
+    for (i = 1; i <= NF; i++) {
+      out = out toupper(substr($i, 1, 1)) substr($i, 2)
+    }
+    print out
+  }'
+}
+
+[ -z "$MODULE_NAME" ] && MODULE_NAME=$(ask "Module Crystal (CamelCase)" "$(suggest_module "$SHARD_NAME")")
+[ -z "$DESC_EN" ]     && DESC_EN=$(ask "Description (EN, une ligne)" "Crystal shard for ${SHARD_NAME}.")
+DESC_FR=$(ask "Description (FR, une ligne)" "Shard Crystal pour ${SHARD_NAME}.")
+TITLE=$(ask    "Titre humain (Antora)" "$(echo "$SHARD_NAME" | tr -d - | awk '{print toupper(substr($0,1,1)) substr($0,2)}')")
+AUTHOR=$(ask   "Auteur (git config user.name)" "$(git config user.name 2>/dev/null || echo 'Philippe Nénert')")
+AUTHOR_EMAIL=$(ask "Email auteur"               "$(git config user.email 2>/dev/null || echo 'philippe@aloli.fr')")
+YEAR=$(date +%Y)
+DATE=$(date +%Y-%m-%d)
+
+INIT_GIT=$(ask "Initialiser git + créer le repo GitHub aloli-crystal/$SHARD_NAME ? [Y/n]" "Y")
+
+# ─── Renommage des fichiers/dossiers ───────────────────────────────
+mv "src/__SHARD__" "src/$SHARD_NAME"
+mv "src/$SHARD_NAME.cr" "src/$SHARD_NAME.cr.tmp" 2>/dev/null || true
+[ -f "src/__SHARD__.cr" ] && mv "src/__SHARD__.cr" "src/$SHARD_NAME.cr"
+[ -f "src/$SHARD_NAME.cr.tmp" ] && mv "src/$SHARD_NAME.cr.tmp" "src/$SHARD_NAME.cr"
+
+# ─── Substitution des placeholders ─────────────────────────────────
+# On utilise sed avec des séparateurs `|` car certaines descriptions
+# peuvent contenir `/`. macOS sed exige `-i ''`.
+SUBST_FILES=$(find . -type f \
+  -not -path "./.git/*" \
+  -not -path "./lib/*" \
+  -not -path "./bin/init" \
+  -not -name "*.dwarf" \
+  2>/dev/null)
+
+for f in $SUBST_FILES; do
+  sed -i '' \
+    -e "s|__SHARD__|$SHARD_NAME|g" \
+    -e "s|__MODULE__|$MODULE_NAME|g" \
+    -e "s|__DESCRIPTION_EN__|$DESC_EN|g" \
+    -e "s|__DESCRIPTION_FR__|$DESC_FR|g" \
+    -e "s|__TITLE__|$TITLE|g" \
+    -e "s|__AUTHOR_EMAIL__|$AUTHOR_EMAIL|g" \
+    -e "s|__AUTHOR__|$AUTHOR|g" \
+    -e "s|__YEAR__|$YEAR|g" \
+    -e "s|__DATE__|$DATE|g" \
+    -e "s|__SHARD_VERSION__|0.1.0|g" \
+    "$f" 2>/dev/null || true
+done
+
+ok "Placeholders remplacés."
+ok "src/${SHARD_NAME}.cr et src/${SHARD_NAME}/version.cr créés."
+
+# ─── Nettoyage des artefacts spécifiques au template ───────────────
+# Inconditionnel : qu'on init git ou pas, ces fichiers n'ont aucun
+# sens dans un shard bootstrappé.
+rm -f bin/init    # auto-suppression : ce script ne doit pas être committé
+rmdir bin 2>/dev/null || true   # si bin/ devient vide
+# Le workflow `template-self-test.yml` ne sert qu'à valider le repo
+# `shard-template` lui-même (bootstrap + spec + format). Inutile ici.
+rm -f .github/workflows/template-self-test.yml
+
+# ─── git + GitHub ──────────────────────────────────────────────────
+case "${INIT_GIT,,}" in y|yes|o|oui|"")
+  git init -q -b production
+  git add -A
+  git commit -q -m "Version 0.1.0 : création du shard depuis aloli-crystal/shard-template
+
+Bootstrap initial avec :
+* macro VERSION lue depuis shard.yml au compile-time
+* CLI \`-h\` / \`--help\` / \`help\` (template, à adapter)
+* spec/version_spec.cr garde-fou désynchro
+* doc/antora composant prêt à agréger
+* CI GitHub Actions (spec + ameba + version-coherence)
+* README + CHANGELOG bilingues (EN + FR)
+"
+  git tag v0.1.0
+  ok "Git initialisé sur branche \`production\`, tag v0.1.0 créé."
+
+  if command -v gh >/dev/null 2>&1; then
+    gh repo create "aloli-crystal/$SHARD_NAME" \
+      --description "$DESC_EN" \
+      --public \
+      --source . \
+      --remote origin \
+      --push 2>&1 | tail -1 || true
+    gh api -X PATCH "repos/aloli-crystal/$SHARD_NAME" \
+      -f default_branch=production >/dev/null 2>&1 || true
+    git push origin v0.1.0 2>&1 | tail -1 || true
+    ok "GitHub : aloli-crystal/$SHARD_NAME créé, branche par défaut = production."
+  else
+    echo "  ⚠ gh CLI non installé — créez le repo GitHub manuellement puis :"
+    echo "    git remote add origin git@github.com:aloli-crystal/$SHARD_NAME.git"
+    echo "    git push -u origin production && git push origin v0.1.0"
+  fi
+  ;;
+*)
+  ok "Pas d'init git/GitHub. Vous pouvez le faire plus tard avec :"
+  echo "    git init -b production && git add -A && git commit -m 'Version 0.1.0 : ...'"
+  ;;
+esac
+
+echo ""
+ok "Shard \`$SHARD_NAME\` prêt. Étapes suivantes :"
+echo "    cd ../$SHARD_NAME      (si vous y êtes pas déjà)"
+echo "    shards install"
+echo "    crystal spec"
+echo ""
+echo "  Documentation des conventions ALOLI dans les notes mémoire :"
+echo "    feedback_shard_version_macro.md     (la macro VERSION)"
+echo "    feedback_cli_help_subcommand.md     (le pattern help)"
+echo "    feedback_versioning_shards.md       (3 vs 4 chiffres)"
+echo "    feedback_default_branch_production  (branche production)"

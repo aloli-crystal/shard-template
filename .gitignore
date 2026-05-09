@@ -5,8 +5,11 @@
 *.dwarf
 
 # Binaires compilés (jamais commités, cf. memory feedback_binaries_no_push)
-/bin/
-!/bin/init    # SAUF le script de bootstrap fourni par le template
+# Note : git ne peut pas ré-inclure un fichier dont le parent est exclu en bloc.
+# Donc on exclut le CONTENU de `/bin/` (avec `*`) et on ré-inclut explicitement
+# `bin/init` — sinon `!bin/init` est sans effet (le répertoire est filtré avant).
+/bin/*
+!/bin/init
 
 # Editor / OS
 .vscode/

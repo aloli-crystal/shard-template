@@ -1,0 +1,55 @@
+name: Template self-test
+# Valide le template ALOLI lui-même : exécute `bin/init` en mode
+# non-interactif pour bootstrapper un shard fictif `demo` / `Demo`,
+# puis lance les mêmes étapes que `ci.yml` (format, spec, ameba,
+# version-coherence) sur le résultat.
+#
+# Ce workflow ne tourne QUE sur le repo `shard-template`. `bin/init`
+# le supprime au bootstrap d'un nouveau shard pour ne pas hériter
+# d'un job inutile.
+
+on:
+  push:
+    branches: [production]
+  pull_request:
+    branches: [production]
+
+jobs:
+  bootstrap-and-test:
+    if: github.event.repository.name == 'shard-template'
+    runs-on: ubuntu-latest
+    container:
+      image: crystallang/crystal:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install git (image crystallang n'inclut pas toujours git)
+        run: apt-get update && apt-get install -y --no-install-recommends git
+
+      - name: Bootstrap via bin/init (mode non-interactif)
+        # 4 entrées vides → DESC_FR, TITLE, AUTHOR, AUTHOR_EMAIL
+        # prennent leur défaut. Dernière "n" → skip git/GitHub init.
+        run: |
+          printf '\n\n\n\nn\n' | ./bin/init demo Demo "Demo shard pour la CI du template"
+
+      - name: Install dependencies
+        run: shards install
+
+      - name: Format check
+        run: crystal tool format --check src/ spec/
+
+      - name: Run specs
+        run: crystal spec --error-on-warnings
+
+      - name: Run ameba
+        run: ./bin/ameba
+
+      - name: Compile-time VERSION matches shard.yml
+        run: |
+          YML_VERSION=$(grep '^version:' shard.yml | awk '{print $2}')
+          BIN_VERSION=$(crystal eval 'require "./src/demo"; puts Demo::VERSION')
+          if [ "$YML_VERSION" != "$BIN_VERSION" ]; then
+            echo "VERSION drift: shard.yml=$YML_VERSION  module=$BIN_VERSION"
+            exit 1
+          fi
+          echo "VERSION OK: $YML_VERSION"

@@ -14,8 +14,8 @@
 require "option_parser"
 require "./__SHARD__"
 
-parser = OptionParser.new do |p|
-  p.banner = <<-BANNER
+parser = OptionParser.new do |op|
+  op.banner = <<-BANNER
     Usage : __SHARD__ SOUS-COMMANDE [options]
 
     Sous-commandes :
@@ -26,18 +26,18 @@ parser = OptionParser.new do |p|
     Options globales :
     BANNER
 
-  p.on("-v", "--version", "Affiche la version") do
+  op.on("-v", "--version", "Affiche la version") do
     puts "__SHARD__ #{__MODULE__::VERSION}"
     exit 0
   end
-  p.on("-h", "--help", "Affiche cette aide") do
-    puts p
+  op.on("-h", "--help", "Affiche cette aide") do
+    puts op
     exit 0
   end
 
-  p.invalid_option do |flag|
+  op.invalid_option do |flag|
     STDERR.puts "Option inconnue : #{flag}"
-    STDERR.puts p
+    STDERR.puts op
     exit 1
   end
 end
@@ -69,7 +69,7 @@ if !positional.empty? && (positional.first == "help" || positional.first == "-h"
   puts "─── Focus : #{sub} ───"
   full.lines.each_with_index do |line, i|
     if line.lstrip.starts_with?("#{sub} ") || line.includes?("  #{sub}  ")
-      full.lines[i, 6].each { |l| puts l.rstrip }
+      full.lines[i, 6].each { |chunk| puts chunk.rstrip }
       break
     end
   end
@@ -83,10 +83,10 @@ if positional.empty?
 end
 
 case positional.first
-  # when "foo"
-  #   # … logique foo …
-  # when "bar"
-  #   # … logique bar …
+# when "foo"
+#   # … logique foo …
+# when "bar"
+#   # … logique bar …
 else
   STDERR.puts "Erreur : sous-commande inconnue « #{positional.first} »"
   STDERR.puts parser

@@ -6,7 +6,15 @@ on:
     branches: [production]
 
 jobs:
+  # NB : sur le repo `shard-template` lui-même, ces jobs sont
+  # désactivés — les sources contiennent encore les placeholders
+  # `__SHARD__` / `__MODULE__` qui sont des mots réservés Crystal et
+  # empêchent toute compilation. La validation du template passe par
+  # le workflow `template-self-test.yml` qui exécute `bin/init` puis
+  # rejoue ces mêmes étapes sur le résultat. `bin/init` supprime ce
+  # workflow au bootstrap d'un nouveau shard.
   spec:
+    if: github.event.repository.name != 'shard-template'
     runs-on: ubuntu-latest
     container:
       image: crystallang/crystal:latest
@@ -36,6 +44,7 @@ jobs:
   # shard.yml. La règle existe via le spec, mais on la double ici
   # pour échouer tôt si jamais le macro `read_file` régresse.
   version-coherence:
+    if: github.event.repository.name != 'shard-template'
     runs-on: ubuntu-latest
     container:
       image: crystallang/crystal:latest
@@ -44,6 +53,10 @@ jobs:
       - name: Install dependencies
         run: shards install
       - name: Compile-time VERSION matches shard.yml
+        # Les tokens `__SHARD__` et `__MODULE__` sont substitués par
+        # `bin/init` dans tous les fichiers (ce workflow inclus) au
+        # bootstrap. Sur le repo `shard-template` lui-même ce job ne
+        # tourne pas (cf. `if:` au niveau du job).
         run: |
           YML_VERSION=$(grep '^version:' shard.yml | awk '{print $2}')
           BIN_VERSION=$(crystal eval 'require "./src/__SHARD__"; puts __MODULE__::VERSION')
