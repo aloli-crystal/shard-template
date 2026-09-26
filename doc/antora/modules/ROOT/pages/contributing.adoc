@@ -29,7 +29,7 @@ Voir les notes mémoire ALOLI :
 # Avant chaque commit
 crystal tool format src/ spec/
 crystal spec
-bin/ameba
+crystal run lib/ameba/bin/ameba.cr -- src spec
 
 # Bump (3e ou 4e position selon convention création/portage)
 $EDITOR shard.yml          # version: 0.1.X+1

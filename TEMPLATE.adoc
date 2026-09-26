@@ -56,7 +56,9 @@ départ pour créer un nouveau shard, soit via le bouton
 
 | Ameba dans dev-deps + CI
 | `shard.yml` déclare ameba en dev_dependencies. CI GitHub Actions
-  inclut `crystal spec`, `crystal tool format --check`, `bin/ameba`.
+  inclut `crystal spec`, `crystal tool format --check` et ameba, invoqué
+  depuis ses sources (`crystal run lib/ameba/bin/ameba.cr`) : la 1.7 ne
+  fournit plus de `bin/ameba` précompilé.
 
 | Pas de binaires commités
 | `.gitignore` ignore `/bin/` SAUF `bin/init` (script bootstrap).
