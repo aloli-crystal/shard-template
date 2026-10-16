@@ -136,6 +136,12 @@ shard purement bibliothèque :
 
 == Mise à jour du template lui-même
 
+Le template a sa propre version, dans `shard.yml` : le 3ᵉ chiffre monte à
+chaque commit du dépôt `shard-template`. `bin/init` la remet à `0.1.0` dans
+le shard créé, qui démarre donc toujours en 0.1.0. Les `CHANGELOG*.adoc` du
+dépôt sont ceux du shard créé (entrée `v0.1.0 — __DATE__`) : l'historique du
+template lui-même est celui de git.
+
 Si vous trouvez une convention manquante ou un fix à apporter au
 template, faites une PR ici. Idéalement, accompagnez-la d'une
 mise à jour de la note mémoire ALOLI correspondante (les

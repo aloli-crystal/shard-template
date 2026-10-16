@@ -110,6 +110,10 @@ for f in $SUBST_FILES; do
     "$f" 2>/dev/null || true
 done
 
+# Le template a sa propre version (shard.yml du dépôt shard-template) ; un
+# shard créé démarre TOUJOURS en 0.1.0, quelle que soit cette version.
+sed -i '' -e 's/^version: .*/version: 0.1.0/' shard.yml
+
 ok "Placeholders remplacés."
 ok "src/${SHARD_NAME}.cr et src/${SHARD_NAME}/version.cr créés."
 

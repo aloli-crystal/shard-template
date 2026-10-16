@@ -1,5 +1,5 @@
 name: __SHARD__
-version: 0.1.0
+version: 0.1.1
 
 description: |
   __DESCRIPTION_EN__
@@ -17,7 +17,7 @@ dependencies:
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    version: "~> 1.6"
+    version: "~> 1.7"
 
 # Décommenter pour exposer un binaire CLI :
 # targets:

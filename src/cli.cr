@@ -57,7 +57,7 @@ if !positional.empty? && (positional.first == "help" || positional.first == "-h"
     exit 0
   end
   # ⚠ ADAPTEZ cette liste à vos vraies sous-commandes.
-  valid_subs = %w() # of String
+  valid_subs = %w[] # of String
   unless valid_subs.includes?(sub.downcase)
     STDERR.puts "Aide indisponible pour « #{sub} » (sous-commandes : #{valid_subs.join(", ")})."
     STDERR.puts "Utilisez `__SHARD__ help` pour l'aide globale."
